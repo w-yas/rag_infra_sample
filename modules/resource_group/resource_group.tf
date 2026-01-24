@@ -1,6 +1,5 @@
-
-resource "azurer_resource_group" "this" {
+resource "azurerm_resource_group" "this" {
   for_each = var.resource_group
-  name     = var.resource_group.name
-  location = var.location
+  name     = each.value.name
+  location = var.common.location
 }

@@ -1,9 +1,8 @@
-
 terraform {
   required_providers {
     azurerm = {
-      source = "hasicorp/azurerm"
-      version = "=4.1.0"
+      source  = "hashicorp/azurerm"
+      version = "~> 4.1.0"
     }
   }
 }
@@ -15,7 +14,7 @@ provider "azurerm" {
 }
 
 module "resource_group" {
-  source         = "../../modules/resource-group"
+  source         = "../../modules/resource_group"
   common         = var.common
   resource_group = var.resource_group
 }
@@ -23,14 +22,21 @@ module "resource_group" {
 module "plan" {
   source         = "../../modules/plan"
   common         = var.common
-  resource_group = module.resource_group.resource_group
+  resource_group = module.resource_group
   plan           = var.plan
 }
 
 module "app_service" {
   source         = "../../modules/app_service"
   common         = var.common
-  plan           = module.plan.plan
+  plan           = module.plan
   app_service    = var.app_service
+  resource_group = module.resource_group
 }
+
+# module "storage" {
+#   source = "../../modules/storage"
+#   common = var.common
+#   storage = var.storage
+# }
 

@@ -1,4 +1,4 @@
-output "plan_id" {
+output "plan-01" {
   description = "The ID of the App Service Plan"
-  value       = azurerm_app_service_plan.plan.id
+  value       = azurerm_service_plan.this["plan-01"]
 }

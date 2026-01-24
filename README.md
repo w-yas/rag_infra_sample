@@ -1,4 +1,4 @@
 
 ```bash
-export ARM_SUBSCRIPTION_ID="your-subscription-id"
+export ARM_SUBSCRIPTION_ID="your_subscription_id"
 ```

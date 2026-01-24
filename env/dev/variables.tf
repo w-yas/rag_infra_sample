@@ -44,14 +44,30 @@ variable "plan" {
 
 variable "app_service" {
   description = ""
-  type        = map(object({
-    name      = string
-    plan_name = string
+  type          = map(object({
+    name        = string
+    plan_name   = string
+    https_only  = bool
+    ip_restriction = object({
+      name       = string
+      action     = string
+      ip_address = string
+      priority   = number
+    })
+    always_on  = bool
   }))
   default = {
     "app-service-01" = {
-      name      = "app-service-01"
-      plan_name = "plan-01"
+      name       = "app-service-01"
+      plan_name  = "plan-01"
+      https_only = true
+      ip_restriction = {
+        name       = "AllowSpecificIP"
+        action     = "Allow"
+        ip_address = "175.177.49.34"
+        priority   = 100
+      }
+      always_on  = true
     }
   }
 }
@@ -114,7 +130,6 @@ variable "postgresql" {
     sku_name   = string
     version    = string
     storage_mb = number
-    version    = string
 
     backup_retention_days        = number
     geo_redundant_backup_enabled = bool
