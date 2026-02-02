@@ -8,7 +8,7 @@ variable "common" {
   })
   default = {
     prefix    = "dev-ys"
-    location  = "japaneast"
+    location  = "westus2"
     env       = "dev"
   }
 }
@@ -21,7 +21,7 @@ variable "resource_group" {
   }))
   default = {
     "rg-01" = {
-      name      = "rg-01"
+      name      = "rg01"
     }
   }
 }
@@ -34,8 +34,13 @@ variable "plan" {
     os_type   = string
   }))
   default = {
-    "plan-01" = {
-      name      = "plan-01"
+    "app-plan01" = {
+      name      = "app-plan01"
+      sku_name  = "F1"
+      os_type   = "Linux"
+    }
+    "func-plan01" = {
+      name      = "func-plan01"
       sku_name  = "F1"
       os_type   = "Linux"
     }
@@ -58,16 +63,16 @@ variable "app_service" {
   }))
   default = {
     "app-service-01" = {
-      name       = "app-service-01"
-      plan_name  = "plan-01"
+      name       = "app-service01"
+      plan_name  = "app-plan01"
       https_only = true
       ip_restriction = {
         name       = "AllowSpecificIP"
         action     = "Allow"
-        ip_address = "175.177.49.34"
+        ip_address = "175.177.49.34/32"
         priority   = 100
       }
-      always_on  = true
+      always_on  = false
     }
   }
 }
@@ -77,32 +82,42 @@ variable "static_web" {
   type       = object({
     name       = string
     sku_tier   = string
-    basic_auth = object({
-      password = string
-      enviroments_to_apply = list(string)
-    })
   })
   default = {
-    name      = "static-web-01"
+    name      = "static-web01"
     sku_tier  = "Free"
-    basic_auth = {
-      password = "ChangeMe123!@#ieq"
-      enviroments_to_apply = ["AllEnvironments"]
-    }
   }
 }
 
 variable "storage" {
   description = ""
-  type        = object({
-    name         = string
-    account_tier = string
-    account_replication_type = string
-  })
+  type        = map(object({
+    name                            = string
+    account_tier                    = string
+    account_replication_type        = string
+    min_tls_version                 = string
+    allow_nested_items_to_be_public = bool
+    shared_access_key_enabled       = bool
+    default_to_oauth_authentication = bool
+    network_rules = object({
+      default_action = string
+      ip_rules       = list(string) 
+    })
+  }))
   default = {
-    name         = "storageaccount01"
-    account_tier = "Standard"
-    account_replication_type = "LRS"
+    "funcst01" = {
+      name                            = "funcst01"
+      account_tier                    = "Standard"
+      account_replication_type        = "LRS"
+      min_tls_version                 = "TLS1_3"
+      allow_nested_items_to_be_public = false
+      shared_access_key_enabled       = true
+      default_to_oauth_authentication = true
+      network_rules = {
+        default_action = "Deny"
+        ip_rules       = ["175.177.49.34"]
+      }
+    }
   }
 }
 
@@ -112,11 +127,13 @@ variable "search" {
     name = string
     sku  = string
     local_authentication_enabled = bool
+    authentication_failure_mode  = string
   })
   default = {
-    name = "search-01"
+    name = "search01"
     sku  = "free"
-    local_authentication_enabled = false
+    local_authentication_enabled = true
+    authentication_failure_mode  = "http403"
   }
 }
 
@@ -136,22 +153,44 @@ variable "postgresql" {
     auto_grow_enabled            = bool
 
     public_network_access_enabled = bool
-    ssl_enforcement_enabled       = bool
-    ssl_minimal_tls_version       = string
+    database = object({
+      name     = string
+      collation = string
+      charset  = string
+    })
   })
   default = {
-    name    = "postgresql-01"
-    administrator_login          = "adminuser"
-    administrator_login_password = "ChangeMe123!@#ieq"
-    sku_name   = "B_Gen5_1"
-    version    = "11"
-    storage_mb = 5120
+    name    = "postgresql01"
+    administrator_login          = "psqladmin"
+    administrator_login_password = "^qgTqS=O}(o&!L~:"
+    sku_name   = "B_Standard_B1ms"
+    version    = "12"
+    storage_mb = 32768
 
     backup_retention_days         = 7
     geo_redundant_backup_enabled  = false
-    auto_grow_enabled             = true
+    auto_grow_enabled             = false
     public_network_access_enabled = true
-    ssl_enforcement_enabled       = true
-    ssl_minimal_tls_version       = "TLS1_2"
+    database = {
+      name     = "appdb"
+      collation = "en_US.utf8"
+      charset  = "UTF8"
+    }
+  }
+}
+
+variable "function" {
+  description = ""
+  type = object({
+    name       = string
+    plan_name  = string
+    https_only = bool
+    storage_name = string
+  })
+  default = {
+    name        = "func-app01"
+    plan_name   = "func-plan01"
+    https_only  = true
+    storage_name = "funcst01"
   }
 }

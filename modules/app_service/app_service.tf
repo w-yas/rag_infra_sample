@@ -1,6 +1,6 @@
 resource "azurerm_linux_web_app" "this" {
   for_each            = var.app_service
-  name                = each.value.name
+  name                = "${var.common.prefix}-${each.value.name}"
   resource_group_name = var.resource_group.resource_group_01.name
   location            = var.common.location
   service_plan_id     = var.plan[each.value.plan_name].id
